@@ -6,6 +6,7 @@
     <title>Avaliação de Risco Empresarial</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.4.0/axios.min.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -110,6 +111,119 @@
             display: inline-block;
             margin-right: 15px;
         }
+        .admin-section {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #f9f9f9;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+        .admin-section h3 {
+            margin-top: 0;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .results-container {
+            margin-top: 20px;
+        }
+        .result-item {
+            background-color: #fff;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        .result-actions {
+            display: flex;
+            gap: 10px;
+        }
+        #summaryResults {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f5f5f5;
+            border-radius: 5px;
+        }
+        #passwordModal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            display: none;
+        }
+        .modal-content {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            width: 300px;
+        }
+        .hidden {
+            display: none;
+        }
+        .email-section {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f0f8ff;
+            border-radius: 5px;
+        }
+        #thankYouMessage {
+            text-align: center;
+            padding: 20px;
+            background-color: #e6ffec;
+            border-radius: 5px;
+            margin-top: 20px;
+            display: none;
+        }
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+        }
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            background-color: #f1f1f1;
+            border: 1px solid #ddd;
+            border-bottom: none;
+            border-radius: 5px 5px 0 0;
+        }
+        .tab.active {
+            background-color: #fff;
+            border-bottom: 1px solid #fff;
+            margin-bottom: -1px;
+            font-weight: bold;
+        }
+        .tab-content {
+            display: none;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 0 5px 5px 5px;
+        }
+        .tab-content.active {
+            display: block;
+        }
     </style>
 </head>
 <body>
@@ -148,6 +262,7 @@
             </div>
         </div>
 
+        <!-- Questões 2-19 são iguais ao código anterior -->
         <div class="question">
             <p><strong>2. Você recebe treinamento adequado sobre procedimentos de segurança?</strong></p>
             <div class="options">
@@ -544,6 +659,9 @@
             </div>
         </div>
 
+        <!-- Continuar com as questões 3-19... -->
+        <!-- Adicionando apenas a última questão para economizar espaço -->
+
         <div class="question">
             <p><strong>20. Existe preocupação com saúde mental e bem-estar dos funcionários?</strong></p>
             <div class="options">
@@ -566,8 +684,29 @@
             </div>
         </div>
 
+        <div class="email-section">
+            <div class="form-group">
+                <label for="companyName">Nome da Empresa (opcional):</label>
+                <input type="text" id="companyName" name="companyName">
+            </div>
+            <div class="form-group">
+                <label for="department">Departamento (opcional):</label>
+                <input type="text" id="department" name="department">
+            </div>
+            <div class="form-group">
+                <label for="emailResults">Para receber os resultados por email (opcional):</label>
+                <input type="email" id="emailResults" name="emailResults" placeholder="Seu email">
+            </div>
+        </div>
+
         <button type="submit" id="submitBtn">Enviar Avaliação</button>
     </form>
+
+    <div id="thankYouMessage">
+        <h2>Obrigado pela sua participação!</h2>
+        <p>Sua avaliação foi registrada com sucesso.</p>
+        <p>Se você forneceu um email, receberá um relatório completo em breve.</p>
+    </div>
 
     <div id="results">
         <h2>Resultado da Avaliação de Risco</h2>
@@ -587,10 +726,115 @@
             <div><strong>Risco alto:</strong> 76-100%</div>
         </div>
         
-        <button id="exportBtn">Exportar para Excel</button>
+        <div class="tabs">
+            <div class="tab active" data-tab="exportTab">Exportar</div>
+            <div class="tab" data-tab="emailTab">Enviar por Email</div>
+            <div class="tab" data-tab="detailsTab">Detalhes</div>
+        </div>
+        
+        <div id="exportTab" class="tab-content active">
+            <p>Exporte os resultados para um arquivo Excel:</p>
+            <button id="exportBtn">Exportar para Excel</button>
+        </div>
+        
+        <div id="emailTab" class="tab-content">
+            <p>Envie os resultados por email:</p>
+            <div class="form-group">
+                <label for="sendEmailTo">Email para envio:</label>
+                <input type="email" id="sendEmailTo" placeholder="Digite o email para envio">
+            </div>
+            <button id="sendEmailBtn">Enviar por Email</button>
+        </div>
+        
+        <div id="detailsTab" class="tab-content">
+            <h3>Detalhes por Categoria</h3>
+            <div id="categoryDetails"></div>
+        </div>
+    </div>
+
+    <!-- Área Admin (Protegida por Senha) -->
+    <div style="text-align: center; margin-top: 30px;">
+        <button id="adminButton" style="background-color: #34495e;">Área Administrativa</button>
+    </div>
+
+    <div id="passwordModal">
+        <div class="modal-content">
+            <h3>Acesso Administrativo</h3>
+            <div class="form-group">
+                <label for="adminPassword">Senha:</label>
+                <input type="password" id="adminPassword">
+            </div>
+            <button id="submitPassword">Acessar</button>
+            <button id="cancelPassword" style="background-color: #e74c3c;">Cancelar</button>
+        </div>
+    </div>
+
+    <div id="adminPanel" class="admin-section hidden">
+        <h3>Painel Administrativo</h3>
+        <div class="tabs">
+            <div class="tab active" data-admin-tab="resultsTab">Resultados</div>
+            <div class="tab" data-admin-tab="settingsTab">Configurações</div>
+            <div class="tab" data-admin-tab="summaryTab">Resumo</div>
+        </div>
+
+        <div id="resultsTab" class="tab-content active">
+            <h4>Últimos Resultados</h4>
+            <div id="resultsList" class="results-container">
+                <!-- Resultados serão carregados aqui -->
+                <p>Carregando resultados...</p>
+            </div>
+        </div>
+
+        <div id="settingsTab" class="tab-content">
+            <h4>Configurações</h4>
+            <div class="form-group">
+                <label for="adminEmail">Email para Receber Todos os Resultados:</label>
+                <input type="email" id="adminEmail">
+            </div>
+            <div class="form-group">
+                <label for="webhookUrl">URL de Webhook (para integração):</label>
+                <input type="text" id="webhookUrl">
+            </div>
+            <button id="saveSettings">Salvar Configurações</button>
+        </div>
+
+        <div id="summaryTab" class="tab-content">
+            <h4>Resumo de Resultados</h4>
+            <div id="summaryResults"></div>
+            <button id="exportSummary">Exportar Resumo</button>
+        </div>
     </div>
 
     <script>
+        // Armazenamento Local (simulando um banco de dados)
+        const LOCAL_STORAGE_KEY = 'riskAssessmentResults';
+        const ADMIN_SETTINGS_KEY = 'riskAssessmentSettings';
+        
+        // Inicializar armazenamento se não existir
+        if (!localStorage.getItem(LOCAL_STORAGE_KEY)) {
+            localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify([]));
+        }
+        
+        if (!localStorage.getItem(ADMIN_SETTINGS_KEY)) {
+            localStorage.setItem(ADMIN_SETTINGS_KEY, JSON.stringify({
+                adminEmail: '',
+                webhookUrl: '',
+                adminPassword: 'admin123' // Senha padrão inicial
+            }));
+        }
+        
+        // Funções auxiliares
+        function getCurrentDateTime() {
+            const now = new Date();
+            return now.toISOString();
+        }
+        
+        function formatDateTime(dateTimeStr) {
+            const date = new Date(dateTimeStr);
+            return date.toLocaleString();
+        }
+        
+        // Manipulação do formulário
         document.getElementById('riskForm').addEventListener('submit', function(e) {
             e.preventDefault();
             
@@ -629,17 +873,259 @@
                 riskClass = 'high-risk';
             }
             
+            // Coletar dados adicionais do formulário
+            const companyName = document.getElementById('companyName').value || 'Não informado';
+            const department = document.getElementById('department').value || 'Não informado';
+            const email = document.getElementById('emailResults').value || null;
+            
+            // Criar objeto de resultado
+            const resultData = {
+                id: Date.now().toString(),
+                dateTime: getCurrentDateTime(),
+                companyName,
+                department,
+                email,
+                totalPoints,
+                riskPercentage,
+                riskLevel,
+                answers
+            };
+            
+            // Salvar no armazenamento local
+            saveResult(resultData);
+            
+            // Se o email for fornecido, simular envio
+            if (email) {
+                sendResultsByEmail(email, resultData);
+            }
+            
+            // Enviar para webhook, se configurado
+            sendToWebhook(resultData);
+            
             // Exibir resultados
+            displayResults(resultData);
+            
+            // Exibir mensagem de agradecimento e esconder formulário
+            document.getElementById('riskForm').style.display = 'none';
+            document.getElementById('thankYouMessage').style.display = 'block';
+            
+            // Se o email não for fornecido, mostrar resultados
+            if (!email) {
+                document.getElementById('results').style.display = 'block';
+            }
+        });
+        
+        function displayResults(resultData) {
             document.getElementById('results').style.display = 'block';
             
             const riskLevelElement = document.getElementById('riskLevel');
-            riskLevelElement.textContent = riskLevel;
-            riskLevelElement.className = 'risk-level ' + riskClass;
+            riskLevelElement.textContent = resultData.riskLevel;
+            riskLevelElement.className = 'risk-level';
+            
+            if (resultData.riskLevel === 'Sem Risco') {
+                riskLevelElement.classList.add('no-risk');
+            } else if (resultData.riskLevel === 'Pouco Risco') {
+                riskLevelElement.classList.add('low-risk');
+            } else if (resultData.riskLevel === 'Risco Moderado') {
+                riskLevelElement.classList.add('moderate-risk');
+            } else {
+                riskLevelElement.classList.add('high-risk');
+            }
             
             const progressBar = document.getElementById('riskProgress');
-            progressBar.value = riskPercentage;
+            progressBar.value = resultData.riskPercentage;
             
-            document.getElementById('riskPercentage').textContent = Math.round(riskPercentage) + '%';
+            document.getElementById('riskPercentage').textContent = Math.round(resultData.riskPercentage) + '%';
             
-            // Scroll para resultados
-            document.getElementById('results
+            // Preencher detalhes por categoria
+            displayCategoryDetails(resultData.answers);
+        }
+        
+        function displayCategoryDetails(answers) {
+            const categoryDetails = document.getElementById('categoryDetails');
+            categoryDetails.innerHTML = '';
+            
+            // Definir categorias para agrupar as perguntas
+            const categories = {
+                'Ambiente de Trabalho': [9, 11, 17, 18, 19],
+                'Treinamento e Cultura': [2, 12, 14, 16, 20],
+                'Procedimentos de Segurança': [1, 3, 5, 7, 10],
+                'Riscos Específicos': [6, 8, 13, 15]
+            };
+            
+            // Calcular pontuação por categoria
+            for (const [category, questionIds] of Object.entries(categories)) {
+                let categoryTotal = 0;
+                questionIds.forEach(id => {
+                    categoryTotal += answers['q' + id];
+                });
+                
+                const maxCategoryPoints = questionIds.length * 4;
+                const categoryPercentage = (categoryTotal / maxCategoryPoints) * 100;
+                
+                // Determinar nível de risco da categoria
+                let categoryRiskLevel = '';
+                let categoryClass = '';
+                
+                if (categoryPercentage <= 25) {
+                    categoryRiskLevel = 'Sem Risco';
+                    categoryClass = 'no-risk';
+                } else if (categoryPercentage <= 50) {
+                    categoryRiskLevel = 'Pouco Risco';
+                    categoryClass = 'low-risk';
+                } else if (categoryPercentage <= 75) {
+                    categoryRiskLevel = 'Risco Moderado';
+                    categoryClass = 'moderate-risk';
+                } else {
+                    categoryRiskLevel = 'Risco Alto';
+                    categoryClass = 'high-risk';
+                }
+                
+                // Criar elemento HTML para a categoria
+                const categoryElement = document.createElement('div');
+                categoryElement.className = 'category-item';
+                categoryElement.innerHTML = `
+                    <h4>${category}</h4>
+                    <div class="progress-container">
+                        <progress value="${categoryPercentage}" max="100"></progress>
+                        <p>${Math.round(categoryPercentage)}% - <span class="${categoryClass}">${categoryRiskLevel}</span></p>
+                    </div>
+                `;
+                
+                categoryDetails.appendChild(categoryElement);
+            }
+        }
+        
+        // Funções de armazenamento
+        function saveResult(resultData) {
+            const results = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY));
+            results.push(resultData);
+            localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(results));
+        }
+        
+        function getAllResults() {
+            return JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY));
+        }
+        
+        // Simulação de envio de email
+        function sendResultsByEmail(email, resultData) {
+            console.log(`Enviando resultados para o email: ${email}`);
+            
+            // Em um ambiente real, você usaria um serviço de email como SendGrid, Mailgun, etc.
+            // Aqui estamos apenas simulando
+            
+            alert(`Em um ambiente de produção, um email seria enviado para ${email} com os resultados da avaliação.`);
+            
+            // Você poderia integrar com um serviço como:
+            /*
+            fetch('https://api.emailservice.com/send', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    to: email,
+                    subject: 'Resultados da Avaliação de Risco',
+                    html: generateEmailHTML(resultData)
+                })
+            });
+            */
+        }
+        
+        // Simulação de envio para webhook
+        function sendToWebhook(resultData) {
+            const settings = JSON.parse(localStorage.getItem(ADMIN_SETTINGS_KEY));
+            if (settings.webhookUrl) {
+                console.log(`Enviando dados para webhook: ${settings.webhookUrl}`);
+                
+                // Em um ambiente real, você enviaria os dados para o webhook
+                // Aqui estamos apenas simulando
+                
+                /*
+                fetch(settings.webhookUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(resultData)
+                });
+                */
+            }
+            
+            // Enviar para email administrativo, se configurado
+            if (settings.adminEmail) {
+                console.log(`Enviando cópia para o email administrativo: ${settings.adminEmail}`);
+                // Simulação
+            }
+        }
+        
+        // Exportação para Excel
+        document.getElementById('exportBtn').addEventListener('click', function() {
+            exportToExcel(getCurrentResultData());
+        });
+        
+        function getCurrentResultData() {
+            // Recuperar dados do último resultado
+            const results = getAllResults();
+            if (results.length === 0) return null;
+            return results[results.length - 1];
+        }
+        
+        function exportToExcel(resultData) {
+            if (!resultData) {
+                alert('Nenhum dado disponível para exportação!');
+                return;
+            }
+            
+            // Criar workbook
+            const wb = XLSX.utils.book_new();
+            
+            // Criar planilha de resumo
+            const summaryData = [
+                ['Avaliação de Risco Empresarial - Resumo'],
+                [''],
+                ['Data/Hora', formatDateTime(resultData.dateTime)],
+                ['Empresa', resultData.companyName],
+                ['Departamento', resultData.department],
+                [''],
+                ['Nível de Risco', resultData.riskLevel],
+                ['Pontuação Total', resultData.totalPoints],
+                ['Percentual de Risco', `${Math.round(resultData.riskPercentage)}%`]
+            ];
+            
+            const summaryWS = XLSX.utils.aoa_to_sheet(summaryData);
+            XLSX.utils.book_append_sheet(wb, summaryWS, 'Resumo');
+            
+            // Criar planilha de respostas detalhadas
+            const questionsMap = {
+                'q1': 'Práticas inseguras observadas',
+                'q2': 'Treinamento sobre procedimentos de segurança',
+                'q3': 'Equipamentos de segurança fornecidos',
+                'q4': 'Comunicação sobre riscos',
+                'q5': 'Resolução de problemas de segurança',
+                'q6': 'Nível de estresse no trabalho',
+                'q7': 'Priorização da segurança sobre produtividade',
+                'q8': 'Frequência de acidentes/quase-acidentes',
+                'q9': 'Manutenção de instalações e equipamentos',
+                'q10': 'Plano de emergência',
+                'q11': 'Qualidade do ar e ventilação',
+                'q12': 'Treinamentos sobre prevenção de riscos',
+                'q13': 'Risco ergonômico',
+                'q14': 'Cultura de prevenção de riscos',
+                'q15': 'Exposição a substâncias químicas/biológicas',
+                'q16': 'Incentivo para relatar condições inseguras',
+                'q17': 'Nível de iluminação',
+                'q18': 'Exposição a ruído',
+                'q19': 'Segurança das instalações elétricas',
+                'q20': 'Preocupação com saúde mental/bem-estar'
+            };
+            
+            const detailedData = [
+                ['Avaliação de Risco Empresarial - Respostas Detalhadas'],
+                [''],
+                ['Questão', 'Resposta (1-4)', 'Interpretação']
+            ];
+            
+            for (const [question, value] of Object.entries(resultData.answers)) {
+                const questionText = questionsMap[question] || question;
+                let interpretation = '';
+                
+                switch(parseInt(value)) {
+                    case 1: interpretation = 'Sem risco'; break;
+                    case 2: interpretation =
