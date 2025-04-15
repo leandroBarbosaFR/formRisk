@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Avaliação de Risco Empresarial</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        h1, h2 {
+            color: #2c3e50;
+            text-align: center;
+        }
+        .intro {
+            background-color: #fff;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .question {
+            background-color: #fff;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .options {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+        }
+        .option {
+            display: flex;
+            align-items: center;
+            margin-right: 15px;
+        }
+        .option input {
+            margin-right: 5px;
+        }
+        .option label {
+            font-size: 14px;
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            display: block;
+            margin: 20px auto;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        #results {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            margin-top: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            display: none;
+        }
+        .risk-level {
+            font-size: 24px;
+            text-align: center;
+            margin: 20px 0;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .no-risk {
+            background-color: #e6ffec;
+            color: #0d8025;
+        }
+        .low-risk {
+            background-color: #fff9e6;
+            color: #b7860b;
+        }
+        .moderate-risk {
+            background-color: #fff0e6;
+            color: #c25318;
+        }
+        .high-risk {
+            background-color: #ffe6e6;
+            color: #c01e1e;
+        }
+        progress {
+            width: 100%;
+            height: 20px;
+            margin-bottom: 10px;
+        }
+        .progress-container {
+            margin-bottom: 30px;
+        }
+        .legend {
+            margin-top: 10px;
+            font-size: 14px;
+        }
+        .legend div {
+            display: inline-block;
+            margin-right: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="intro">
+        <h1>Avaliação de Risco Empresarial</h1>
+        <p>Este formulário tem como objetivo avaliar o nível de risco na empresa. Todas as respostas são anônimas. Por favor, responda com sinceridade todas as questões.</p>
+        <p><strong>Escala de avaliação:</strong></p>
+        <ul>
+            <li><strong>1</strong> = Sem risco</li>
+            <li><strong>2</strong> = Pouco risco</li>
+            <li><strong>3</strong> = Risco moderado</li>
+            <li><strong>4</strong> = Risco alto</li>
+        </ul>
+    </div>
+
+    <form id="riskForm">
+        <div class="question">
+            <p><strong>1. Com que frequência você observa práticas inseguras no seu local de trabalho?</strong></p>
+            <div class="options">
+                <div class="option">
+                    <input type="radio" id="q1_1" name="q1" value="1" required>
+                    <label for="q1_1">1 - Nunca</label>
+                </div>
+                <div class="option">
+                    <input type="radio" id="q1_2" name="q1" value="2">
+                    <label for="q1_2">2 - Raramente</label>
+                </div>
+                <div class="option">
+                    <input type="radio" id="q1_3" name="q1" value="3">
+                    <label for="q1_3">3 - Ocasionalmente</label>
+                </div>
+                <div class="option">
+                    <input type="radio" id="q1_4" name="q1" value="4">
+                    <label for="q1_4">4 - Frequentemente</label>
+                </div>
+            </div>
+        </div>
+
+        <div class="question">
+            <p><strong>2. Você recebe treinamento adequado sobre procedimentos de segurança?</strong></p>
+            <div class="options">
+                <div class="option">
+                    <input type="radio" id="q2_1" name="q2" value="1" required>
+                    <label for="q2_1">1 - Sempre</label>
+                </div>
+                <div class="option">
+                    <input type="radio" id="q2_2" name="q2" value="2">
+                    <label for="q2_2">2 - Frequentemente</label>
+                </div>
+                <div class="option">
+                    <input type="radio" id="q2_3" name="q2" value="3">
+                    <label for="q2_3">3 - Raramente</label>
+                </div>
+                <div class="option">
+                    <input type="radio" id="q2_4" name="q2" value="4">
+                    <label for="q2_4">4 - Nunca</label>
+                </div>
+            </div>
+        </div>
+
+        <div class="question">
+            <p><strong>3. Os equipamentos de segurança são devidamente fornecidos e mantidos?</strong></p>
+            <div class="options">
+                <div class="option">
+                    <input type="radio" id="q3_1" name="q3" value="1" required>
+                    <label for="q3_1">1 - Sempre</label>
+                </div>
+                <div class="option">
+                    <input type="radio" id="q3_2" name="q3" value="2">
+                    <label for="q3_2">2 - Geralmente</label>
+                </div>
+                <div class="option">
+                    <input type="radio" id="q3_3" name="q3" value="3">
+                    <label for="q3_3">3 - Às vezes</label>
+                </div>
+                <div class="option">
+                    <input type="radio" id="q3_4" name="q3" value="4">
+                    <label for="q3_4">4 - Raramente/Nunca</label>
+                </div>
+            </div>
+        </div>
+
+        <div class="question">
+            <p><strong>4. Como você avalia a comunicação sobre riscos no ambiente de trabalho?</strong></p>
+            <div class="options">
+                <div class="option">
+                    <input type="radio" id="q4_1" name="q4" value="1" required>
+                    <label for="q4_1">1 - Excelente</label>
+                </div>
+                <div class="option">
+                    <input type="radio" id="q4_2" name="q4" value="2">
+                    <label for="q4_2">2 - Boa</label>
+                </div>
+                <div class="option">
+                    <input type="radio" id="q4_3" name="q4" value="3">
+                    <label for="q4_3">3 - Regular</label>
+                </div>
+                <div class="option">
+                    <input type="radio" id="q4_4" name="q4" value="4">
+                    <label for="q4_4">4 - Deficiente</label>
+                </div>
+            </div>
+        </div>
+
+        <div class="question">
+            <p><strong>5. Quando problemas de segurança são relatados, com que rapidez eles são resolvidos?</strong></p>
+            <div class="options">
+                <div class="option">
+                    <input type="radio" id="q5_1" name="q5" value="1" required>
+                    <label for="q5_1">1 - Imediatamente</label>
+                </div>
+                <div class="option">
+                    <input type="radio" id="q5_2" name="q5" value="2">
+                    <label for="q5_2">2 - Em pouco tempo</label>
+                </div>
+                <div class="option">
+                    <input type="radio" id="q5_3" name="q5" value="3">
+                    <label for="q5_3">3 - Com atraso</label>
+                </div>
+                <div class="option">
+                    <input type="radio" id="q5_4" name="q5" value="4">
+                    <label for="q5_4">4 - Raramente resolvidos</label>
+                </div>
+            </div>
+        </div>
+
+        <div class="question">
+            <p><strong>6. Como você avalia o nível de estresse no seu ambiente de trabalho?</strong></p>
+            <div class="options">
+                <div class="option">
+                    <input type="radio" id="q6_1" name="q6" value="1" required>
+                    <label for="q6_1">1 - Baixo</label>
+                </div>
+                <div class="option">
+                    <input type="radio" id="q6_2" name="q6" value="2">
+                    <label for="q6_2">2 - Moderado</label>
+                </div>
+                <div class="option">
+                    <input type="radio" id="q6_3" name="q6" value="3">
+                    <label for="q6_3">3 - Alto</label>
+                </div>
+                <div class="option">
+                    <input type="radio" id="q6_4" name="q6" value="4">
+                    <label for="q6_4">4 - Extremo</label>
+                </div>
+            </div>
+        </div>
+
+        <div class="question">
+            <p><strong>7. Os gestores priorizam a segurança sobre a produtividade?</strong></p>
+            <div class="options">
+                <div class="option">
+                    <input type="radio" id="q7_1" name="q7" value="1" required>
+                    <label for="q7_1">1 - Sempre</label>
+                </div>
+                <div class="option">
+                    <input type="radio" id="q7_2" name="q7" value="2">
+                    <label for="q7_2">2 - Geralmente</label>
+                </div>
+                <div class="option">
+                    <input type="radio" id="q7_3" name="q7" value="3">
+                    <label for="q7_3">3 - Raramente</label>
+                </div>
+                <div class="option">
+                    <input type="radio" id="q7_4" name="q7" value="4">
+                    <label for="q7_4">4 - Nunca</label>
+                </div>
+            </div>
+        </div>
+
+        <div class="question">
+            <p><strong>8. Com que frequência ocorrem acidentes ou quase-acidentes no seu local de trabalho?</strong></p>
+            <div class="options">
+                <div class="option">
+                    <input type="radio" id="q8_1" name="q8" value="1" required>
+                    <label for="q8_1">1 - Nunca</label>
+                </div>
+                <div class="option">
+                    <input type="radio" id="q8_2" name="q8" value="2">
+                    <label for="q8_2">2 - Raramente</label>
+                </div>
+                <div class="option">
+                    <input type="radio" id="q8_3" name="q8" value="3">
+                    <label for="q8_3">3 - Ocasionalmente</label>
+                </div>
+                <div class="option">
+                    <input type="radio" id="q8_4" name="q8" value="4">
+                    <label for="q8_4">4 - Frequentemente</label>
+                </div>
+            </div>
+        </div>
+
+        <div class="question">
+            <p><strong>9. Como você avalia a manutenção das instalações e equipamentos?</strong></p>
+            <div class="options">
+                <div class="option">
+                    <input type="radio" id="q9_1" name="q9" value="1" required>
+                    <label for="q9_1">1 - Excelente</label>
+                </div>
+                <div class="option">
+                    <input type="radio" id="q9_2" name="q9" value="2">
+                    <label for="q9_2">2 - Boa</label>
+                </div>
+                <div class="option">
+                    <input type="radio" id="q9_3" name="q9" value="3">
+                    <label for="q9_3">3 - Regular</label>
+                </div>
+                <div class="option">
+                    <input type="radio" id="q9_4" name="q9" value="4">
+                    <label for="q9_4">4 - Deficiente</label>
+                </div>
+            </div>
+        </div>
+
+        <div class="question">
+            <p><strong>10. Existe um plano de emergência claro e você sabe o que fazer em caso de emergência?</strong></p>
+            <div class="options">
+                <div class="option">
+                    <input type="radio" id="q10_1" name="q10" value="1" required>
+                    <label for="q10_1">1 - Sim, é claro e bem treinado</label>
+                </div>
+                <div class="option">
+                    <input type="radio" id="q10_2" name="q10" value="2">
+                    <label for="q10_2">2 - Sim, mas com pouco treinamento</label>
+                </div>
+                <div class="option">
+                    <input type="radio" id="q10_3" name="q10" value="3">
+                    <label for="q10_3">3 - Existe um plano, mas não é divulgado</label>
+                </div>
+                <div class="option">
+                    <input type="radio" id="q10_4" name="q10" value="4">
+                    <label for="q10_4">4 - Não existe ou desconheço</label>
+                </div>
+            </div>
+        </div>
+
+        <div class="question">
+            <p><strong>11. Como você avalia a qualidade do ar e ventilação no seu ambiente de trabalho?</strong></p>
+            <div class="options">
+                <div class="option">
+                    <input type="radio" id="q11_1" name="q11" value="1" required>
+                    <label for="q11_1">1 - Excelente</label>
+                </div>
+                <div class="option">
+                    <input type="radio" id="q11_2" name="q11" value="2">
+                    <label for="q11_2">2 - Boa</label>
+                </div>
+                <div class="option">
+                    <input type="radio" id="q11_3" name="q11" value="3">
+                    <label for="q11_3">3 - Regular</label>
+                </div>
+                <div class="option">
+                    <input type="radio" id="q11_4" name="q11" value="4">
+                    <label for="q11_4">4 - Deficiente</label>
+                </div>
+            </div>
+        </div>
+
+        <div class="question">
+            <p><strong>12. Você tem acesso a treinamentos regulares sobre prevenção de riscos?</strong></p>
+            <div class="options">
+                <div class="option">
+                    <input type="radio" id="q12_1" name="q12" value="1" required>
+                    <label for="q12_1">1 - Sempre</label>
+                </div>
+                <div class="option">
+                    <input type="radio" id="q12_2" name="q12" value="2">
+                    <label for="q12_2">2 - Frequentemente</label>
+                </div>
+                <div class="option">
+                    <input type="radio" id="q12_3" name="q12" value="3">
+                    <label for="q12_3">3 - Raramente</label>
+                </div>
+                <div class="option">
+                    <input type="radio" id="q12_4" name="q12" value="4">
+                    <label for="q12_4">4 - Nunca</label>
+                </div>
+            </div>
+        </div>
+
+        <div class="question">
+            <p><strong>13. Como você classifica o risco ergonômico do seu posto de trabalho?</strong></p>
+            <div class="options">
+                <div class="option">
+                    <input type="radio" id="q13_1" name="q13" value="1" required>
+                    <label for="q13_1">1 - Sem risco</label>
+                </div>
+                <div class="option">
+                    <input type="radio" id="q13_2" name="q13" value="2">
+                    <label for="q13_2">2 - Baixo risco</label>
+                </div>
+                <div class="option">
+                    <input type="radio" id="q13_3" name="q13" value="3">
+                    <label for="q13_3">3 - Risco moderado</label>
+                </div>
+                <div class="option">
+                    <input type="radio" id="q13_4" name="q13" value="4">
+                    <label for="q13_4">4 - Alto risco</label>
+                </div>
+            </div>
+        </div>
+
+        <div class="question">
+            <p><strong>14. Existe uma cultura de prevenção de riscos na empresa?</strong></p>
+            <div class="options">
+                <div class="option">
+                    <input type="radio" id="q14_1" name="q14" value="1" required>
+                    <label for="q14_1">1 - Fortemente presente</label>
+                </div>
+                <div class="option">
+                    <input type="radio" id="q14_2" name="q14" value="2">
+                    <label for="q14_2">2 - Presente</label>
+                </div>
+                <div class="option">
+                    <input type="radio" id="q14_3" name="q14" value="3">
+                    <label for="q14_3">3 - Pouco presente</label>
+                </div>
+                <div class="option">
+                    <input type="radio" id="q14_4" name="q14" value="4">
+                    <label for="q14_4">4 - Inexistente</label>
+                </div>
+            </div>
+        </div>
+
+        <div class="question">
+            <p><strong>15. Como você avalia o risco de exposição a substâncias químicas ou biológicas?</strong></p>
+            <div class="options">
+                <div class="option">
+                    <input type="radio" id="q15_1" name="q15" value="1" required>
+                    <label for="q15_1">1 - Inexistente</label>
+                </div>
+                <div class="option">
+                    <input type="radio" id="q15_2" name="q15" value="2">
+                    <label for="q15_2">2 - Baixo</label>
+                </div>
+                <div class="option">
+                    <input type="radio" id="q15_3" name="q15" value="3">
+                    <label for="q15_3">3 - Moderado</label>
+                </div>
+                <div class="option">
+                    <input type="radio" id="q15_4" name="q15" value="4">
+                    <label for="q15_4">4 - Alto</label>
+                </div>
+            </div>
+        </div>
+
+        <div class="question">
+            <p><strong>16. Os funcionários são incentivados a relatar condições inseguras?</strong></p>
+            <div class="options">
+                <div class="option">
+                    <input type="radio" id="q16_1" name="q16" value="1" required>
+                    <label for="q16_1">1 - Sempre</label>
+                </div>
+                <div class="option">
+                    <input type="radio" id="q16_2" name="q16" value="2">
+                    <label for="q16_2">2 - Geralmente</label>
+                </div>
+                <div class="option">
+                    <input type="radio" id="q16_3" name="q16" value="3">
+                    <label for="q16_3">3 - Raramente</label>
+                </div>
+                <div class="option">
+                    <input type="radio" id="q16_4" name="q16" value="4">
+                    <label for="q16_4">4 - Nunca</label>
+                </div>
+            </div>
+        </div>
+
+        <div class="question">
+            <p><strong>17. Como você avalia o nível de iluminação no seu ambiente de trabalho?</strong></p>
+            <div class="options">
+                <div class="option">
+                    <input type="radio" id="q17_1" name="q17" value="1" required>
+                    <label for="q17_1">1 - Ideal</label>
+                </div>
+                <div class="option">
+                    <input type="radio" id="q17_2" name="q17" value="2">
+                    <label for="q17_2">2 - Adequado</label>
+                </div>
+                <div class="option">
+                    <input type="radio" id="q17_3" name="q17" value="3">
+                    <label for="q17_3">3 - Parcialmente inadequado</label>
+                </div>
+                <div class="option">
+                    <input type="radio" id="q17_4" name="q17" value="4">
+                    <label for="q17_4">4 - Totalmente inadequado</label>
+                </div>
+            </div>
+        </div>
+
+        <div class="question">
+            <p><strong>18. Existe exposição a níveis elevados de ruído no seu ambiente de trabalho?</strong></p>
+            <div class="options">
+                <div class="option">
+                    <input type="radio" id="q18_1" name="q18" value="1" required>
+                    <label for="q18_1">1 - Nunca</label>
+                </div>
+                <div class="option">
+                    <input type="radio" id="q18_2" name="q18" value="2">
+                    <label for="q18_2">2 - Raramente</label>
+                </div>
+                <div class="option">
+                    <input type="radio" id="q18_3" name="q18" value="3">
+                    <label for="q18_3">3 - Frequentemente</label>
+                </div>
+                <div class="option">
+                    <input type="radio" id="q18_4" name="q18" value="4">
+                    <label for="q18_4">4 - Constantemente</label>
+                </div>
+            </div>
+        </div>
+
+        <div class="question">
+            <p><strong>19. Como você avalia a segurança das instalações elétricas no seu local de trabalho?</strong></p>
+            <div class="options">
+                <div class="option">
+                    <input type="radio" id="q19_1" name="q19" value="1" required>
+                    <label for="q19_1">1 - Muito seguras</label>
+                </div>
+                <div class="option">
+                    <input type="radio" id="q19_2" name="q19" value="2">
+                    <label for="q19_2">2 - Seguras</label>
+                </div>
+                <div class="option">
+                    <input type="radio" id="q19_3" name="q19" value="3">
+                    <label for="q19_3">3 - Pouco seguras</label>
+                </div>
+                <div class="option">
+                    <input type="radio" id="q19_4" name="q19" value="4">
+                    <label for="q19_4">4 - Inseguras</label>
+                </div>
+            </div>
+        </div>
+
+        <div class="question">
+            <p><strong>20. Existe preocupação com saúde mental e bem-estar dos funcionários?</strong></p>
+            <div class="options">
+                <div class="option">
+                    <input type="radio" id="q20_1" name="q20" value="1" required>
+                    <label for="q20_1">1 - Alta preocupação</label>
+                </div>
+                <div class="option">
+                    <input type="radio" id="q20_2" name="q20" value="2">
+                    <label for="q20_2">2 - Preocupação moderada</label>
+                </div>
+                <div class="option">
+                    <input type="radio" id="q20_3" name="q20" value="3">
+                    <label for="q20_3">3 - Pouca preocupação</label>
+                </div>
+                <div class="option">
+                    <input type="radio" id="q20_4" name="q20" value="4">
+                    <label for="q20_4">4 - Nenhuma preocupação</label>
+                </div>
+            </div>
+        </div>
+
+        <button type="submit" id="submitBtn">Enviar Avaliação</button>
+    </form>
+
+    <div id="results">
+        <h2>Resultado da Avaliação de Risco</h2>
+        
+        <div class="progress-container">
+            <p>Nível de Risco Total:</p>
+            <progress id="riskProgress" value="0" max="100"></progress>
+            <p id="riskPercentage">0%</p>
+        </div>
+        
+        <div id="riskLevel" class="risk-level">Calculando...</div>
+        
+        <div class="legend">
+            <div><strong>Sem risco:</strong> 0-25%</div>
+            <div><strong>Pouco risco:</strong> 26-50%</div>
+            <div><strong>Risco moderado:</strong> 51-75%</div>
+            <div><strong>Risco alto:</strong> 76-100%</div>
+        </div>
+        
+        <button id="exportBtn">Exportar para Excel</button>
+    </div>
+
+    <script>
+        document.getElementById('riskForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Coletar todas as respostas
+            let totalPoints = 0;
+            let answers = {};
+            const totalQuestions = 20;
+            
+            // Calcular pontos
+            for (let i = 1; i <= totalQuestions; i++) {
+                const questionName = 'q' + i;
+                const selectedValue = parseInt(document.querySelector('input[name="' + questionName + '"]:checked').value);
+                totalPoints += selectedValue;
+                answers[questionName] = selectedValue;
+            }
+            
+            // Calcular percentual
+            const maxPossiblePoints = totalQuestions * 4;
+            const riskPercentage = (totalPoints / maxPossiblePoints) * 100;
+            
+            // Determinar nível de risco
+            let riskLevel = '';
+            let riskClass = '';
+            
+            if (riskPercentage <= 25) {
+                riskLevel = 'Sem Risco';
+                riskClass = 'no-risk';
+            } else if (riskPercentage <= 50) {
+                riskLevel = 'Pouco Risco';
+                riskClass = 'low-risk';
+            } else if (riskPercentage <= 75) {
+                riskLevel = 'Risco Moderado';
+                riskClass = 'moderate-risk';
+            } else {
+                riskLevel = 'Risco Alto';
+                riskClass = 'high-risk';
+            }
+            
+            // Exibir resultados
+            document.getElementById('results').style.display = 'block';
+            
+            const riskLevelElement = document.getElementById('riskLevel');
+            riskLevelElement.textContent = riskLevel;
+            riskLevelElement.className = 'risk-level ' + riskClass;
+            
+            const progressBar = document.getElementById('riskProgress');
+            progressBar.value = riskPercentage;
+            
+            document.getElementById('riskPercentage').textContent = Math.round(riskPercentage) + '%';
+            
+            // Scroll para resultados
+            document.getElementById('results
