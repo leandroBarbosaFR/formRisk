@@ -80,7 +80,7 @@
   const urlEncodedData = new URLSearchParams(formData).toString();
   
   // Use JSONP approach which works better with Google Apps Script
-  fetch(`https://script.google.com/macros/s/AKfycby8aetAcYD1zFDTeyBEUsq4Gdmp0re6O9MnIKzN1CBYiRj3pWBkTjJBIP1J0DnHc5glEQ/exec?${urlEncodedData}`, {
+  fetch(`https://script.google.com/macros/s/AKfycbyS5eHtIOD4iEkpu3RsXqB-pu1oU2qupEu6uM0xvkS1290YVzmAxkOIC4twuYSRD_yKJw/exec?${urlEncodedData}`, {
     method: 'GET',
     mode: 'no-cors' // This is important for CORS issues
   })
