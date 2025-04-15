@@ -9,13 +9,16 @@
       font-family: Arial, sans-serif;
       padding: 2rem;
       background-color: #f0f2f5;
+      margin: 0;
     }
     h1 {
       text-align: center;
+      color: #333;
+      margin-bottom: 2rem;
     }
     form {
       max-width: 600px;
-      margin: auto;
+      margin: 0 auto 2rem auto;
       background: #fff;
       padding: 2rem;
       border-radius: 8px;
@@ -28,39 +31,116 @@
       display: block;
       margin-bottom: .5rem;
       font-weight: bold;
+      color: #444;
     }
     select {
       width: 100%;
-      padding: .5rem;
+      padding: .75rem;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 16px;
+      background-color: #f9f9f9;
+    }
+    select:focus {
+      outline: none;
+      border-color: #007BFF;
+      box-shadow: 0 0 0 2px rgba(0,123,255,.25);
     }
     button {
       background-color: #007BFF;
       color: white;
       border: none;
-      padding: .75rem 1.5rem;
+      padding: 1rem 2rem;
+      font-size: 16px;
+      font-weight: bold;
       cursor: pointer;
       border-radius: 4px;
+      width: 100%;
+      transition: background-color 0.2s;
+    }
+    button:hover {
+      background-color: #0069d9;
+    }
+    .status {
+      text-align: center;
+      padding: 1rem;
+      margin-top: 1rem;
+      border-radius: 4px;
+      display: none;
+    }
+    .success {
+      background-color: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+    .error {
+      background-color: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+    .loading {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 3px solid rgba(255,255,255,.3);
+      border-radius: 50%;
+      border-top-color: #fff;
+      animation: spin 1s ease-in-out infinite;
+      margin-right: 8px;
+      vertical-align: middle;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    .required {
+      color: #dc3545;
+      margin-left: 3px;
     }
   </style>
 </head>
 <body>
-
   <h1>Formulário de Avaliação de Risco</h1>
-
   <form id="riskForm">
     <div id="questions"></div>
-    <button type="submit">Enviar</button>
+    <div id="status" class="status"></div>
+    <button type="submit" id="submitBtn">Enviar</button>
   </form>
 
   <script>
-    // Gerar dinamicamente 20 perguntas
+    // Configuration
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzjVQuzX34mGfBucLpTmhBYr30URTtqOMNtYcnCqETqZI04WZDPm7jsgYBdB4bXSSZlbQ/exec";
+    
+    // Generate questions dynamically
+    const questions = [
+      "Exposição a agentes químicos",
+      "Exposição a agentes físicos",
+      "Exposição a agentes biológicos",
+      "Risco ergonômico",
+      "Risco de acidentes",
+      "Risco psicossocial",
+      "Treinamento em segurança",
+      "Uso de EPI",
+      "Procedimentos de emergência",
+      "Manutenção de equipamentos",
+      "Sinalização de segurança",
+      "Gestão de resíduos",
+      "Ventilação adequada",
+      "Iluminação adequada",
+      "Ruído excessivo",
+      "Movimentação de cargas",
+      "Trabalho em altura",
+      "Trabalho em espaço confinado",
+      "Exposição a temperaturas extremas",
+      "Controle de acesso"
+    ];
+    
     const container = document.getElementById('questions');
-    for (let i = 1; i <= 20; i++) {
+    questions.forEach((question, index) => {
       container.innerHTML += `
         <div class="question">
-          <label for="q${i}">Pergunta ${i}</label>
-          <select name="q${i}" id="q${i}" >
-            <option value="">Selecione</option>
+          <label for="q${index+1}">Pergunta ${index+1}: ${question} <span class="required">*</span></label>
+          <select name="q${index+1}" id="q${index+1}" required>
+            <option value="">Selecione uma opção</option>
             <option value="1">1 - Sem risco</option>
             <option value="2">2 - Pouco risco</option>
             <option value="3">3 - Risco moderado</option>
@@ -68,32 +148,105 @@
           </select>
         </div>
       `;
+    });
+    
+    // Form submission handling
+    const form = document.getElementById('riskForm');
+    const statusDiv = document.getElementById('status');
+    const submitBtn = document.getElementById('submitBtn');
+    
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      // Validate form
+      const selects = form.querySelectorAll('select');
+      let isValid = true;
+      
+      selects.forEach(select => {
+        if (!select.value) {
+          isValid = false;
+          select.style.borderColor = '#dc3545';
+        } else {
+          select.style.borderColor = '#ccc';
+        }
+      });
+      
+      if (!isValid) {
+        showStatus('Por favor, responda todas as perguntas.', 'error');
+        return;
+      }
+      
+      // Show loading state
+      submitBtn.innerHTML = '<span class="loading"></span> Enviando...';
+      submitBtn.disabled = true;
+      
+      // Collect form data
+      const formData = new FormData(form);
+      const data = {};
+      
+      for (let [key, value] of formData.entries()) {
+        data[key] = value;
+      }
+      
+      // Send data using JSONP approach (works better with Google Apps Script)
+      const queryString = new URLSearchParams();
+      for (const key in data) {
+        queryString.append(key, data[key]);
+      }
+      
+      // Create a script element to make the request
+      const script = document.createElement('script');
+      const callbackName = 'formCallback_' + Math.floor(Math.random() * 1000000);
+      
+      // Define callback function
+      window[callbackName] = function(response) {
+        // Reset button state
+        submitBtn.innerHTML = 'Enviar';
+        submitBtn.disabled = false;
+        
+        if (response && response.result === 'success') {
+          showStatus('Formulário enviado com sucesso!', 'success');
+          form.reset();
+        } else {
+          showStatus('Erro ao enviar o formulário. Tente novamente.', 'error');
+        }
+        
+        // Clean up
+        document.body.removeChild(script);
+        delete window[callbackName];
+      };
+      
+      // Build the URL with callback and query parameters
+      const url = `${SCRIPT_URL}?callback=${callbackName}&${queryString.toString()}`;
+      
+      // Set timeout for error handling
+      const timeout = setTimeout(() => {
+        if (window[callbackName]) {
+          submitBtn.innerHTML = 'Enviar';
+          submitBtn.disabled = false;
+          showStatus('Tempo esgotado. Verifique sua conexão e tente novamente.', 'error');
+          document.body.removeChild(script);
+          delete window[callbackName];
+        }
+      }, 10000);
+      
+      // Add script to document to make the request
+      script.src = url;
+      document.body.appendChild(script);
+    });
+    
+    function showStatus(message, type) {
+      statusDiv.textContent = message;
+      statusDiv.className = `status ${type}`;
+      statusDiv.style.display = 'block';
+      
+      // Hide status after 5 seconds for success messages
+      if (type === 'success') {
+        setTimeout(() => {
+          statusDiv.style.display = 'none';
+        }, 5000);
+      }
     }
-
-    // Enviar respostas via fetch para Google Apps Script
-   document.getElementById('riskForm').addEventListener('submit', function(e) {
-  e.preventDefault();
-  const form = document.getElementById('riskForm');
-  const formData = new FormData(form);
-  
-  // Convert form data to URL-encoded string
-  const urlEncodedData = new URLSearchParams(formData).toString();
-  
-  // Use JSONP approach which works better with Google Apps Script
-  fetch(`https://script.google.com/macros/s/AKfycbyS5eHtIOD4iEkpu3RsXqB-pu1oU2qupEu6uM0xvkS1290YVzmAxkOIC4twuYSRD_yKJw/exec?${urlEncodedData}`, {
-    method: 'GET',
-    mode: 'no-cors' // This is important for CORS issues
-  })
-  .then(() => {
-    alert('Formulário enviado com sucesso!');
-    form.reset();
-  })
-  .catch(error => {
-    console.error(error);
-    alert('Erro ao enviar o formulário.');
-  });
-});
   </script>
-
 </body>
 </html>
